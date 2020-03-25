@@ -22,8 +22,11 @@ class Node:
 
 class State:
     """State class to be associated with 1 node"""
-    def __init__(self, white_stacks, total_white_pieces, black_stacks, total_black_pieces):
-        self.white_stacks
+    def __init__(self, white_stacks, black_stacks):
+
+        # white_stacks = {(3,2): 1, (3,4): 3}
+        self.white_stacks = white_stacks
+        self.black_stacks = black_stacks
 
 
 
@@ -45,22 +48,18 @@ def get_next_move(init_state, budget=100):
         explored_nodes += [current_node]
 
         # go through the list of applicable move actions and try them
-        i = 0 # index of the stack we're analysing
         # go through the squares where we have a stack
-        for stack in current_node.state.stack_locations:
+        for stack in current_node.state.white_stacks.items():
             # iterate through each possible number of pieces to move from our stack at the current occupied_square
-            for n_pieces in range(1, current_node.state.stack_sizes[i] + 1):
+            for n_pieces in range(1, stack[1] + 1):
                 # possible moving directions
                 for move_direction in MOVE_DIRECTIONS:
                     # number of squares to move n_pieces from current stack, 1 <= n_steps <= stack
-                    for n_steps in range(1, current_node.state.stack_sizes[i] + 1):
+                    for n_steps in range(1, n_pieces + 1):
                         # check if moving n_steps in move_direction from current stack is a legal move (i.e. not out of bounds and not landing on an enemy piece)
-                        if is_legal_move(current_node.state.enemy_stack_locations, stack, move_direction, n_steps):
+                        if is_legal_move(current_node.state.black_stacks, stack[0], move_direction, n_steps):
                             # make a child node that is the result of applying this move action to the current_node
                             child_node = apply_action(current_node, stack, n_pieces, move_direction, n_steps)
-
-
-            i += 1 # check to next stack
 
 
 def is_legal_move(enemy_stack_locations, moving_stack_location, move_direction, n_steps):
@@ -72,7 +71,7 @@ def calculate_dest_square(moving_stack_location, move_direction, n_steps):
     return (moving_stack_location[0] + n_steps * move_direction[0], moving_stack_location[1] + n_steps * move_direction[1])
 
 def apply_action(base_node, stack, n_pieces, move_direction, n_steps):
-    """apply a move action to the given base node by moving n_pices from stack n_steps in move_direction"""
+    """apply a move action to the given base node by moving n_pieces from stack n_steps in move_direction"""
     dest_square = calculate_dest_square(stack, move_direction, n_steps)
 
     # make a new node that is a copy of the base_node
@@ -95,4 +94,14 @@ def apply_action(base_node, stack, n_pieces, move_direction, n_steps):
 
 
     return ...
-def boom_action(base_node)
+
+def boom_action(base_node, stack):
+    white_pos = base_node.state.white_stacks[0];
+    radius_x = [white_pos[0], white_pos[0], white_pos[0]-1, white_pos[0]-1, white_pos[0]-1, white_pos[0]+1, white_pos[0]+1, white_pos[0]+1]
+    radius_y = [white_pos[1]-1, white_pos[1]+1, white_pos[1], white_pos[1]-1, white_pos[1]+1, white_pos[1], white_pos[1]-1, white_pos[1]+1]
+    radius = zip(radius_x, radius_y)
+    for black_stack in base_node.state.black_stacks:
+        for r in radius:
+            if (black_stack[1] == r):
+                pop(black_stack)
+
