@@ -147,15 +147,26 @@ def apply_action(base_node, stack):
     # store the move which got us to new_node
     new_node.move = (stack, BOOM)
 
-    radius_x = [stack[0], stack[0], stack[0] - 1, stack[0] - 1, stack[0] - 1, stack[0] + 1,
+    # creating array representing the blast radius
+    # possible x coordinates e.g. (2,2): [2, 2 , 1, 1, 1, 3, 3, 3]
+    radius_x = [stack[0], stack[0], stack[0] - 1, stack[0] - 1, stack[0] - 1, stack[0] - 1, stack[0] + 1,
                 stack[0] + 1, stack[0] + 1]
+    # possible corresponding y coordinates e.g. (2,2): [1, 3, 2, 1, 3, 2, 1, 3]
     radius_y = [stack[1] - 1, stack[1] + 1, stack[1], stack[1] - 1, stack[1] + 1, stack[1],
                 stack[1] - 1, stack[1] + 1]
     radius = zip(radius_x, radius_y)
-    for black_stack in base_node.state.black_stacks:
-        for r in radius:
-            if black_stack[1] == r:
-                pop(black_stack)
 
+    # summing list of black stacks and white stacks together as both can be affected by explosion
+    all_stacks = base_node.state.black_stacks + base_node.state.white_stacks
+
+    for stack_item in all_stacks:
+        for r in radius:
+            if stack_item[0] == r:
+                if stack_item[0] in base_node.state.black_stacks:
+                    apply_action(new_node, stack_item[0])
+                    new_node.state.black_stacks.pop(stack_item[0])
+                else:
+                    apply_action(new_node, stack_item[0])
+                    new_node.state.white_stacks.pop(stack_item[0])
     return new_node
 
