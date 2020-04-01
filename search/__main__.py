@@ -17,7 +17,6 @@ def make_board_dict(data):
             board_dict[(x, y)] = get_square_data(data, x, y)
     return board_dict
 
-
 def get_square_data(data, x, y):
     # return string of square contents (e.g. '4b') from coordinates x, y
     # e.g. if a square at (1, 3) is occupied by 3 white pieces, get_square_data(data, 1, 3) returns '3w'
@@ -55,17 +54,10 @@ def main():
 
     # make the initial state and the initial node
     init_state = ai.State(make_state_dict(data, WHITE_PIECE), make_state_dict(data, BLACK_PIECE))
-    current_node = ai.Node(init_state)
+    init_node = ai.Node(init_state)
 
-    # run ai and start generating winning moves
-    moves_made = []  # keep track of the moves we have made
-    current_node = ai.get_next_move(current_node)
-    while current_node is not None:
-        moves_made.append(current_node.move_made)
-        current_node = ai.get_next_move(current_node)
-
-    # print the moves made
-    print(moves_made)
+    # print the winning move sequence
+    print(ai.get_winning_sequence(init_node))
 
 if __name__ == '__main__':
     main()
