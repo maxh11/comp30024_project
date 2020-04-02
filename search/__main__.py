@@ -54,17 +54,14 @@ def main():
 
     # make the initial state and the initial node
     init_state = ai.State(make_state_dict(data, WHITE_PIECE), make_state_dict(data, BLACK_PIECE))
-    current_node = ai.Node(init_state)
+    init_node = ai.Node(init_state)
 
-    # run ai and start generating winning moves
-    moves_made = []  # keep track of the moves we have made
-    current_node = ai.get_next_move(current_node)
-    while current_node is not None:
-        moves_made.append(current_node.move_made)
-        current_node = ai.get_next_move(current_node)
-
-    # print the moves made
-    print(moves_made)
+    # print the winning move sequence
+    for elem in ai.get_winning_sequence(init_node):
+        if elem[0] == ai.BOOM:
+            print(f'{elem[0]} at {elem[1]}.')
+        else:
+            print(f'{elem[0]} {elem[1]} from {elem[2]} to {elem[3]}.')
 
 if __name__ == '__main__':
     main()
