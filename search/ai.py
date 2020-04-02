@@ -211,6 +211,7 @@ def apply_action(base_node, stack, n_pieces, move_direction, n_steps):
 
     return new_node
 
+
 def boom_action(base_node, stack_to_boom):
     # make a new node that is a copy of the base_node
     new_node = Node(State(base_node.state.white_stacks.copy(), base_node.state.black_stacks.copy()))
@@ -223,7 +224,7 @@ def boom_action(base_node, stack_to_boom):
     new_node.move = (stack_to_boom, BOOM)
 
     # recursive boom at the new_node.state starting at 'stack', this updates the state
-    new_node.state = recursive_boom(new_node.state, stack_to_boom)
+    new_node.state = chain_boom(new_node.state, stack_to_boom)
 
     # update a* values and return
     new_node.h = heuristic(new_node.state)
@@ -231,9 +232,11 @@ def boom_action(base_node, stack_to_boom):
     return new_node
 
 
+# this sucks
 def recursive_boom(state, stack_to_boom):
+    # add the stack to the stacks to be removed
     # make a boom radius from stack_to_boom
-    radius_x = [stack_to_boom[0], stack_to_boom[0], stack_to_boom[0] - 1, stack_to_boom[0] - 1, stack_to_boom[0] - 1,
+    radius_x = [stack_to_boom[0], stack_to_boom[0], stack_to_boom[0] - 1, stack_to_boom[0] - 1,
                 stack_to_boom[0] - 1, stack_to_boom[0] + 1,
                 stack_to_boom[0] + 1, stack_to_boom[0] + 1]
     # possible corresponding y coordinates e.g. (2,2): [1, 3, 2, 1, 3, 2, 1, 3]
@@ -248,12 +251,50 @@ def recursive_boom(state, stack_to_boom):
         state.white_stacks.pop(stack_to_boom)
     # go through white stacks where the boom could hit, boom at those locations
     for stack in white_stacks_hit:
-        recursive_boom(state, stack)
+        state = recursive_boom(state, stack)
 
     # do the same for black stacks ...
     black_stacks_hit = list(set(state.black_stacks.keys()).intersection(radius))
     if stack_to_boom in state.black_stacks:
         state.black_stacks.pop(stack_to_boom)
     for stack in black_stacks_hit:
-        recursive_boom(state, stack)
+        state = recursive_boom(state, stack)
+    return state
+
+
+# new boom function needs to be made
+def chain_boom(state, stack_to_boom, stacks_to_remove=None):
+    # add the stack_to_boom to the stacks_to_remove
+    if stacks_to_remove is None:
+        stacks_to_remove = set()
+    stacks_to_remove.add(stack_to_boom)
+
+    # go through all the adjacent stacks to stack_to_boom
+    # add the stack to the stacks to be removed
+    # make a boom radius from stack_to_boom
+    radius_x = [stack_to_boom[0], stack_to_boom[0], stack_to_boom[0] - 1, stack_to_boom[0] - 1,
+                stack_to_boom[0] - 1, stack_to_boom[0] + 1,
+                stack_to_boom[0] + 1, stack_to_boom[0] + 1]
+    # possible corresponding y coordinates e.g. (2,2): [1, 3, 2, 1, 3, 2, 1, 3]
+    radius_y = [stack_to_boom[1] - 1, stack_to_boom[1] + 1, stack_to_boom[1], stack_to_boom[1] - 1,
+                stack_to_boom[1] + 1, stack_to_boom[1],
+                stack_to_boom[1] - 1, stack_to_boom[1] + 1]
+    radius = list(zip(radius_x, radius_y))
+
+    # get a list of all the squares where the boom hit
+    all_stacks = list(state.white_stacks.keys()) + list(state.black_stacks.keys())
+    stacks_hit = list(set(all_stacks).intersection(radius))
+
+    # add all the stacks_stacks_hit to the stacks_to_remove set, if they havent been added before, boom them
+    for st in stacks_hit:
+        if st not in stacks_to_remove:
+            stacks_to_remove.add(st)
+            chain_boom(state, st, stacks_to_remove)
+
+    # remove stacks_to_remove from state and return state
+    for st in stacks_to_remove:
+        if st in state.white_stacks:
+            state.white_stacks.pop(st)
+        if st in state.black_stacks:
+            state.black_stacks.pop(st)
     return state
